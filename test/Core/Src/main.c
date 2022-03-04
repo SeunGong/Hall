@@ -128,17 +128,17 @@ int main(void) {
 	while (1) {
 		if (speed < 1700) {
 			for (int i = 0; i < 19; i++) {
-				if(i%2==1){
+				if (i % 2 == 1) {
 					HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 				}
-			//	speed = i * 100;
-	//			HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, speed);
-				printf("speed : %d",speed);
+				speed = i * 100;
+				HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, speed);
+				printf("speed set : %d\r\n", speed);
+				HAL_Delay(200);
 			}
 		}
-		speed = 1900;
 		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, speed);
-
+		printf("speed : %d\r\n", speed);
 		/*		hall1 = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_4);
 		 hall2 = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_5);
 		 hall3 = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_6);
