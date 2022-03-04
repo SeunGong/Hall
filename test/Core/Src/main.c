@@ -19,7 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include <main.h>
-
+#include"motor.h"
+#include"config.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -120,7 +121,7 @@ int main(void) {
 //	volatile uint16_t rawADC[4] = { 0, };
 //	uint32_t throttleCur = 0;
 	uint16_t speed = 0;
-	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0);
+	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -128,22 +129,19 @@ int main(void) {
 	while (1) {
 		if (speed < 1700) {
 			for (int i = 0; i < 19; i++) {
-				if (i % 2 == 1) {
-					HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-				}
+				HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 				speed = i * 100;
 				HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, speed);
 				printf("speed set : %d\r\n", speed);
 				HAL_Delay(200);
 			}
 		}
-		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, speed);
 		printf("speed : %d\r\n", speed);
-		/*		hall1 = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_4);
+				hall1 = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_4);
 		 hall2 = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_5);
 		 hall3 = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_6);
-		 printf("speed : %d Hall value = %d%d%d\r\n", speed, hall1, hall2,
-		 hall3);*/
+//		 printf("speed : %d Hall value = %d%d%d\r\n", speed, hall1, hall2,
+//		 hall3);
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
