@@ -61,8 +61,8 @@ void Error_Handler(void);
 #define Break_GPIO_Port GPIOE
 #define Reverse_Pin GPIO_PIN_3
 #define Reverse_GPIO_Port GPIOE
-#define Hall1_Pin GPIO_PIN_4
-#define Hall1_GPIO_Port GPIOE
+#define Pulse1_Pin GPIO_PIN_4
+#define Pulse1_GPIO_Port GPIOE
 #define Hall2_Pin GPIO_PIN_5
 #define Hall2_GPIO_Port GPIOE
 #define Hall3_Pin GPIO_PIN_6
@@ -88,8 +88,6 @@ void Error_Handler(void);
 #define LD1_GPIO_Port GPIOB
 #define RMII_TXD1_Pin GPIO_PIN_13
 #define RMII_TXD1_GPIO_Port GPIOB
-#define LD3_Pin GPIO_PIN_14
-#define LD3_GPIO_Port GPIOB
 #define STLK_RX_Pin GPIO_PIN_8
 #define STLK_RX_GPIO_Port GPIOD
 #define STLK_TX_Pin GPIO_PIN_9
