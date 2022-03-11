@@ -84,7 +84,6 @@ PUTCHAR_PROTOTYPE {
 }
 
 /*int mode = 0, count = 0, num = 0, inithall = 0, cycle = 0, speed = 0, prevalue;
- int joystickState = 1;
  uint8_t hall1, hall2, hall3;
  uint8_t parameter[6] = { 1, 5, 4, 6, 2, 3 };*/
 
@@ -100,9 +99,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint16_t Pulse1[1];
-	uint16_t Pulse2[1];
-	uint16_t Pulse3[1];
+	uint16_t Pulse1;
+	uint16_t Pulse2;
+	uint16_t Pulse3;
+	uint8_t pwm = 20;
+	//	uint16_t speed = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -128,9 +129,8 @@ int main(void)
   MX_DMA_Init();
   MX_DAC_Init();
   /* USER CODE BEGIN 2 */
-//	uint16_t speed = 0;
-//	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
 
+//	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
 	HAL_TIM_IC_Start_DMA(&htim8, TIM_CHANNEL_1, (uint32_t*) Pulse1, 1);
 //	htim8.State = HAL_TIM_STATE_READY;
 	HAL_TIM_IC_Start_DMA(&htim8, TIM_CHANNEL_2, (uint32_t*) Pulse2, 1);
@@ -142,19 +142,9 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-		printf("Pulse1 : %u, Pulse1 : %u, Pulse1 : %u\r\n", Pulse1,Pulse2,Pulse3);
+		printf("Pulse1 : %u, Pulse1 : %u, Pulse1 : %u\r\n", Pulse1, Pulse2,
+				Pulse3);
 		/*		uint8_t hall = 0;
-		 int pwm = 20;
-		 if (cycle == 15) {
-		 for (int i = 0; i < pwm; i++) {
-		 HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-		 speed = i * (pwm - 1 - i) * 100;
-		 HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, speed);
-		 printf("motor stop\r\n", speed);
-
-		 }
-		 HAL_Delay(100);
-		 }
 		 if (speed < 1600) {
 		 for (int i = 0; i < pwm; i++) {
 		 HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
@@ -172,7 +162,7 @@ int main(void)
 		 }
 		 HAL_Delay(100);
 		 }
-		 } //speed 맞추?�� if �???????
+		 } //set speed but it need to change when hall clock is detected.
 		 hall1 = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_4);
 		 hall2 = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_5);
 		 hall3 = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_6);
@@ -290,7 +280,7 @@ static void MX_TIM8_Init(void)
 
   /* USER CODE END TIM8_Init 1 */
   htim8.Instance = TIM8;
-  htim8.Init.Prescaler = 160-1;
+  htim8.Init.Prescaler = 16-1;
   htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim8.Init.Period = 1000-1;
   htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

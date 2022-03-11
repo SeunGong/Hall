@@ -227,6 +227,9 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef* htim_ic)
 
     __HAL_LINKDMA(htim_ic,hdma[TIM_DMA_ID_CC3],hdma_tim8_ch3);
 
+    /* TIM8 interrupt Init */
+    HAL_NVIC_SetPriority(TIM8_CC_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM8_CC_IRQn);
   /* USER CODE BEGIN TIM8_MspInit 1 */
 
   /* USER CODE END TIM8_MspInit 1 */
@@ -261,6 +264,9 @@ void HAL_TIM_IC_MspDeInit(TIM_HandleTypeDef* htim_ic)
     HAL_DMA_DeInit(htim_ic->hdma[TIM_DMA_ID_CC1]);
     HAL_DMA_DeInit(htim_ic->hdma[TIM_DMA_ID_CC2]);
     HAL_DMA_DeInit(htim_ic->hdma[TIM_DMA_ID_CC3]);
+
+    /* TIM8 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(TIM8_CC_IRQn);
   /* USER CODE BEGIN TIM8_MspDeInit 1 */
 
   /* USER CODE END TIM8_MspDeInit 1 */
