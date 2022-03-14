@@ -57,16 +57,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define Break_Pin GPIO_PIN_2
-#define Break_GPIO_Port GPIOE
-#define Reverse_Pin GPIO_PIN_3
-#define Reverse_GPIO_Port GPIOE
-#define Pulse1_Pin GPIO_PIN_4
-#define Pulse1_GPIO_Port GPIOE
-#define Hall2_Pin GPIO_PIN_5
-#define Hall2_GPIO_Port GPIOE
-#define Hall3_Pin GPIO_PIN_6
-#define Hall3_GPIO_Port GPIOE
 #define USER_Btn_Pin GPIO_PIN_13
 #define USER_Btn_GPIO_Port GPIOC
 #define USER_Btn_EXTI_IRQn EXTI15_10_IRQn
