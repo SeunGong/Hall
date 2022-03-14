@@ -117,10 +117,11 @@ int main(void) {
 	MX_DAC_Init();
 	/* USER CODE BEGIN 2 */
 
-//	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
+	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
 	HAL_TIM_IC_Start_DMA(&htim8, TIM_CHANNEL_1, (uint32_t*) h1, 2);
-//	htim3.State = HAL_TIM_STATE_READY;
+	htim8.State = HAL_TIM_STATE_READY;
 	HAL_TIM_IC_Start_DMA(&htim8, TIM_CHANNEL_2, (uint32_t*) h2, 2);
+	htim8.State = HAL_TIM_STATE_READY;
 	HAL_TIM_IC_Start_DMA(&htim8, TIM_CHANNEL_3, (uint32_t*) h3, 2);
 
 	/* USER CODE END 2 */
