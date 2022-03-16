@@ -23,7 +23,6 @@
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
-extern DMA_HandleTypeDef hdma_tim8_ch1;
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
@@ -58,9 +57,7 @@ extern DMA_HandleTypeDef hdma_tim8_ch1;
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
-
-void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-                    /**
+/**
   * Initializes the Global MSP.
   */
 void HAL_MspInit(void)
@@ -141,161 +138,68 @@ void HAL_DAC_MspDeInit(DAC_HandleTypeDef* hdac)
 }
 
 /**
-* @brief TIM_PWM MSP Initialization
+* @brief TIMEx_HallSensor MSP Initialization
 * This function configures the hardware resources used in this example
-* @param htim_pwm: TIM_PWM handle pointer
+* @param htimex_hallsensor: TIMEx_HallSensor handle pointer
 * @retval None
 */
-void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
-{
-  if(htim_pwm->Instance==TIM1)
-  {
-  /* USER CODE BEGIN TIM1_MspInit 0 */
-
-  /* USER CODE END TIM1_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_TIM1_CLK_ENABLE();
-  /* USER CODE BEGIN TIM1_MspInit 1 */
-
-  /* USER CODE END TIM1_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief TIM_IC MSP Initialization
-* This function configures the hardware resources used in this example
-* @param htim_ic: TIM_IC handle pointer
-* @retval None
-*/
-void HAL_TIM_IC_MspInit(TIM_HandleTypeDef* htim_ic)
+void HAL_TIMEx_HallSensor_MspInit(TIM_HandleTypeDef* htimex_hallsensor)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(htim_ic->Instance==TIM8)
+  if(htimex_hallsensor->Instance==TIM4)
   {
-  /* USER CODE BEGIN TIM8_MspInit 0 */
+  /* USER CODE BEGIN TIM4_MspInit 0 */
 
-  /* USER CODE END TIM8_MspInit 0 */
+  /* USER CODE END TIM4_MspInit 0 */
     /* Peripheral clock enable */
-    __HAL_RCC_TIM8_CLK_ENABLE();
+    __HAL_RCC_TIM4_CLK_ENABLE();
 
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    /**TIM8 GPIO Configuration
-    PC6     ------> TIM8_CH1
+    __HAL_RCC_GPIOD_CLK_ENABLE();
+    /**TIM4 GPIO Configuration
+    PD12     ------> TIM4_CH1
+    PD13     ------> TIM4_CH2
+    PD14     ------> TIM4_CH3
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_6;
+    GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-    /* TIM8 DMA Init */
-    /* TIM8_CH1 Init */
-    hdma_tim8_ch1.Instance = DMA2_Stream2;
-    hdma_tim8_ch1.Init.Channel = DMA_CHANNEL_7;
-    hdma_tim8_ch1.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    hdma_tim8_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim8_ch1.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_tim8_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    hdma_tim8_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-    hdma_tim8_ch1.Init.Mode = DMA_CIRCULAR;
-    hdma_tim8_ch1.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_tim8_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    if (HAL_DMA_Init(&hdma_tim8_ch1) != HAL_OK)
-    {
-      Error_Handler();
-    }
+  /* USER CODE BEGIN TIM4_MspInit 1 */
 
-    __HAL_LINKDMA(htim_ic,hdma[TIM_DMA_ID_CC1],hdma_tim8_ch1);
-
-    /* TIM8 interrupt Init */
-    HAL_NVIC_SetPriority(TIM8_CC_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(TIM8_CC_IRQn);
-  /* USER CODE BEGIN TIM8_MspInit 1 */
-
-  /* USER CODE END TIM8_MspInit 1 */
-  }
-
-}
-
-void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(htim->Instance==TIM1)
-  {
-  /* USER CODE BEGIN TIM1_MspPostInit 0 */
-
-  /* USER CODE END TIM1_MspPostInit 0 */
-
-    __HAL_RCC_GPIOE_CLK_ENABLE();
-    /**TIM1 GPIO Configuration
-    PE14     ------> TIM1_CH4
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_14;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
-    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN TIM1_MspPostInit 1 */
-
-  /* USER CODE END TIM1_MspPostInit 1 */
-  }
-
-}
-/**
-* @brief TIM_PWM MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param htim_pwm: TIM_PWM handle pointer
-* @retval None
-*/
-void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
-{
-  if(htim_pwm->Instance==TIM1)
-  {
-  /* USER CODE BEGIN TIM1_MspDeInit 0 */
-
-  /* USER CODE END TIM1_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_TIM1_CLK_DISABLE();
-  /* USER CODE BEGIN TIM1_MspDeInit 1 */
-
-  /* USER CODE END TIM1_MspDeInit 1 */
+  /* USER CODE END TIM4_MspInit 1 */
   }
 
 }
 
 /**
-* @brief TIM_IC MSP De-Initialization
+* @brief TIMEx_HallSensor MSP De-Initialization
 * This function freeze the hardware resources used in this example
-* @param htim_ic: TIM_IC handle pointer
+* @param htimex_hallsensor: TIMEx_HallSensor handle pointer
 * @retval None
 */
-void HAL_TIM_IC_MspDeInit(TIM_HandleTypeDef* htim_ic)
+void HAL_TIMEx_HallSensor_MspDeInit(TIM_HandleTypeDef* htimex_hallsensor)
 {
-  if(htim_ic->Instance==TIM8)
+  if(htimex_hallsensor->Instance==TIM4)
   {
-  /* USER CODE BEGIN TIM8_MspDeInit 0 */
+  /* USER CODE BEGIN TIM4_MspDeInit 0 */
 
-  /* USER CODE END TIM8_MspDeInit 0 */
+  /* USER CODE END TIM4_MspDeInit 0 */
     /* Peripheral clock disable */
-    __HAL_RCC_TIM8_CLK_DISABLE();
+    __HAL_RCC_TIM4_CLK_DISABLE();
 
-    /**TIM8 GPIO Configuration
-    PC6     ------> TIM8_CH1
+    /**TIM4 GPIO Configuration
+    PD12     ------> TIM4_CH1
+    PD13     ------> TIM4_CH2
+    PD14     ------> TIM4_CH3
     */
-    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_6);
+    HAL_GPIO_DeInit(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14);
 
-    /* TIM8 DMA DeInit */
-    HAL_DMA_DeInit(htim_ic->hdma[TIM_DMA_ID_CC1]);
+  /* USER CODE BEGIN TIM4_MspDeInit 1 */
 
-    /* TIM8 interrupt DeInit */
-    HAL_NVIC_DisableIRQ(TIM8_CC_IRQn);
-  /* USER CODE BEGIN TIM8_MspDeInit 1 */
-
-  /* USER CODE END TIM8_MspDeInit 1 */
+  /* USER CODE END TIM4_MspDeInit 1 */
   }
 
 }
