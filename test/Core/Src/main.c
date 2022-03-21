@@ -42,6 +42,7 @@
 DAC_HandleTypeDef hdac;
 
 TIM_HandleTypeDef htim4;
+DMA_HandleTypeDef hdma_tim4_up;
 
 UART_HandleTypeDef huart3;
 
@@ -53,10 +54,10 @@ UART_HandleTypeDef huart3;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
-static void MX_DAC_Init(void);
+static void MX_DMA_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_DAC_Init(void);
 /* USER CODE BEGIN PFP */
-void CaptureEdge();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -84,7 +85,7 @@ PUTCHAR_PROTOTYPE {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t pwm = 20;
+	uint8_t pwm = 23;
 	uint16_t speed = 0;
   /* USER CODE END 1 */
 
@@ -101,32 +102,41 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART3_UART_Init();
-  MX_DAC_Init();
+  MX_DMA_Init();
   MX_TIM4_Init();
+  MX_DAC_Init();
   /* USER CODE BEGIN 2 */
 
+	uint32_t period[2] = { 0, };
+	int status;
 	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
+	status = HAL_TIMEx_HallSensor_Start_DMA(&htim4, (uint32_t*) period, 1);
 
+//	uint32_t *pData, uint16_t Length
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-		if (speed < 1600) {
-			for (int i = 0; i < pwm; i++) {
-				speed = i * 100;
-				HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, speed);
-				printf("speed set : %d\r\n", speed);
-				HAL_Delay(100);
-			}
+		if (speed < 3000) {
+//			for (int i = 0; i < pwm; i++) {
+//				speed = i * 100;
+//				HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, speed);
+//				printf("speed set : %d\r\n", speed);
+//				HAL_Delay(100);
+//			}
+
+			speed += 1;
+			HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, speed);
 		} //set speed but it need to change when hall clock is detected.
-		printf("CNT :  %d CCR2: %d\r\n",TIM4->CNT,TIM4->CCR2);
+
+		printf("CNT :  %6d CCR1: %6d Period: %6d\r\n", TIM4->CNT, TIM4->CCR1,
+				period[0]);
 	}
 
     /* USER CODE END WHILE */
@@ -149,6 +159,7 @@ void SystemClock_Config(void)
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -160,6 +171,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -192,6 +204,7 @@ static void MX_DAC_Init(void)
   /* USER CODE BEGIN DAC_Init 1 */
 
   /* USER CODE END DAC_Init 1 */
+
   /** DAC Initialization
   */
   hdac.Instance = DAC;
@@ -199,6 +212,7 @@ static void MX_DAC_Init(void)
   {
     Error_Handler();
   }
+
   /** DAC channel OUT1 config
   */
   sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
@@ -232,14 +246,14 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 0;
+  htim4.Init.Prescaler = 160-1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 65535;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_FALLING;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 0;
+  sConfig.IC1Filter = 15;
   sConfig.Commutation_Delay = 0;
   if (HAL_TIMEx_HallSensor_Init(&htim4, &sConfig) != HAL_OK)
   {
@@ -289,6 +303,22 @@ static void MX_USART3_UART_Init(void)
   /* USER CODE BEGIN USART3_Init 2 */
 
   /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
 
 }
 
@@ -426,4 +456,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
