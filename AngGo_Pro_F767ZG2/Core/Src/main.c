@@ -125,7 +125,7 @@ int joystickState = 1;
 int main(void) {
 	/* USER CODE BEGIN 1 */
 	float overtimeL, overtimeR = 0;
-	float diameter = 3.14 * 14 * 10 / 6;
+	float diameter = 3.14 * 14 /60; //PI*diameter/count of cycle
 	float nowspeedL = 0;
 	float nowspeedR = 0;
 	float SPEED_Max = -9999;
@@ -205,23 +205,20 @@ int main(void) {
 			PreCCR1 = TIM5->CCR1;
 			count++;
 			SUM_CCR1 += PreCCR1;
-			sprintf((char*) tx_buffer, "Count: %d CCR1= %d\r\n", count,
-					TIM5->CCR1);
-			tx_com(tx_buffer, strlen((char const*) tx_buffer));
-		}
-		if (SUM_CCR1 == 10) {
-			AVG_CCR1 / count;
-			sprintf((char*) tx_buffer, "average value = %d\r\n",AVG_CCR1);
-			tx_com(tx_buffer, strlen((char const*) tx_buffer));
-			break;
-		}
 
-//		overtimeR = (float) AVG_CCR1 * 0.00125; //get a overtime
-//		nowspeedR = diameter / (overtimeR); //get a speed
-//		sprintf((char*) tx_buffer, "%0.2f,%0.2f,%0.2f\r\n", nowspeedR,
-//				SPEED_Max, SPEED_Min);
-//		tx_com(tx_buffer, strlen((char const*) tx_buffer));
-//
+		}
+		if (count == 10) {
+			AVG_CCR1 = SUM_CCR1 / count;
+//			sprintf((char*) tx_buffer, "%d,%d,",TIM5->CCR1,AVG_CCR1);
+//			tx_com(tx_buffer, strlen((char const*) tx_buffer));
+			SUM_CCR1 = 0;
+			count = 0;
+
+			overtimeR = (float) AVG_CCR1 * 0.00125; //get a overtime
+			nowspeedR = diameter / overtimeR; //get a speed
+			sprintf((char*) tx_buffer, "%d,%0.2f,%0.2f,80\r\n", AVG_CCR1,nowspeedR,overtimeR*60);
+			tx_com(tx_buffer, strlen((char const*) tx_buffer));
+		}
 
 //		sprintf((char*) tx_buffer,
 //				"CCR1[RIGHT]: %d Overtime[RIGHT]: %0.2fms Speed[RIGHT]: %0.2fm/s\r\n",
