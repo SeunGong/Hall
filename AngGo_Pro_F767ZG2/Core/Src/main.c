@@ -125,8 +125,14 @@ int joystickState = 1;
 int main(void) {
 	/* USER CODE BEGIN 1 */
 	float overtimeL, overtimeR = 0;
-	float diameter = 0;
-	float nowspeedL, nowspeedR;
+	float diameter = 3.14 * 14 * 10 / 6;
+	float nowspeedL = 0;
+	float nowspeedR = 0;
+	float SPEED_Max = -9999;
+	float SPEED_Min = 9999;
+	float CCR1_MAX = -99999;
+	float CCR1_MIN = 99999;
+	uint16_t SUM_CCR1 = 0, AVG_CCR1 = 0;
 //	uint8_t newI2C;
 	//	uint8_t ToFSensor = 1; // 0=Left, 1=Center(default), 2=Right
 	/* USER CODE END 1 */
@@ -188,16 +194,62 @@ int main(void) {
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+
+	int i, num = 0;
+
 	while (1) {
-		overtimeL = (float) TIM4->CCR1 * 0.00125;
-		overtimeR = (float) TIM5->CCR1 * 0.00125;
-		diameter = (float) 3.14 * 14;
-		nowspeedL = diameter / overtimeL * 60 / 100;
-		nowspeedR = diameter / overtimeR * 60 / 100;
-		sprintf((char*) tx_buffer,
-				"CCR1[RIGHT]: %d Overtime[RIGHT]: %0.2fms Speed[RIGHT]: %0.2fm/s\r\n",
-				TIM5->CCR1, overtimeR, nowspeedR);
+
+		/*
+		 if (i > 10) {
+		 if (nowspeedR > SPEED_Max)
+		 SPEED_Max = nowspeedR;
+		 else if (nowspeedR < SPEED_Min)
+		 SPEED_Min = nowspeedR;
+		 }
+		 */
+
+		/*		if (i > 10) {
+		 if (TIM5->CCR1 > CCR1_MAX)
+		 CCR1_MAX = TIM5->CCR1;
+		 else if (TIM5->CCR1 < CCR1_MIN)
+		 CCR1_MIN = TIM5->CCR1;
+		 }
+		 i++;*/
+
+		do {
+			SUM_CCR1 += TIM5->CCR1;
+			num++;
+		} while (num < 10);
+
+//		i++;
+		AVG_CCR1 = SUM_CCR1 / num; // Measure average CCR1
+				/*
+				 if (i > 10) {
+				 if (AVG_CCR1 > CCR1_MAX)
+				 CCR1_MAX = AVG_CCR1;
+				 else if (AVG_CCR1 < CCR1_MIN)
+				 CCR1_MIN = AVG_CCR1;
+				 }
+				 i++;*/
+
+//		overtimeR = (float) AVG_CCR1 * 0.00125; //get a overtime
+//		nowspeedR = diameter / (overtimeR); //get a speed
+
+//		sprintf((char*) tx_buffer, "%0.2f,%0.2f,%0.2f\r\n", nowspeedR,
+//				SPEED_Max, SPEED_Min);
+//		tx_com(tx_buffer, strlen((char const*) tx_buffer));
+//
+		sprintf((char*) tx_buffer, "%d,%d,%d\r\n", TIM5->CCR1, AVG_CCR1,
+				SUM_CCR1);
 		tx_com(tx_buffer, strlen((char const*) tx_buffer));
+
+		num = 0, SUM_CCR1 = 0;
+//		sprintf((char*) tx_buffer,
+//				"CCR1[RIGHT]: %d Overtime[RIGHT]: %0.2fms Speed[RIGHT]: %0.2fm/s\r\n",
+//				TIM5->CCR1, overtimeR, nowspeedR);
+//		tx_com(tx_buffer, strlen((char const*) tx_buffer));
+
+		HAL_Delay(10);
 	}
 	/* USER CODE END WHILE */
 
