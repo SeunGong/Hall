@@ -212,7 +212,6 @@ int main(void) {
 		}
 
 
-
 //		overtimeR = (float) AVG_CCR1 * 0.00125; //get a overtime
 //		nowspeedR = diameter / (overtimeR); //get a speed
 //		sprintf((char*) tx_buffer, "%0.2f,%0.2f,%0.2f\r\n", nowspeedR,
