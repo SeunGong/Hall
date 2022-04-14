@@ -130,8 +130,9 @@ int main(void) {
 	float overtimeR = 0;
 	float diameter = 3.14 * 14 / 60; //PI*diameter/count of cycle
 //	float nowspeedL = 0;
-	float nowspeedR = 0;
-
+	float nowspeedR=0;
+	float target_speed=0.5f;
+	//0.7m/s
 //	uint8_t newI2C;
 	//	uint8_t ToFSensor = 1; // 0=Left, 1=Center(default), 2=Right
 	/* USER CODE END 1 */
@@ -169,15 +170,15 @@ int main(void) {
 	MX_TIM1_Init();
 	MX_TIM5_Init();
 	/* USER CODE BEGIN 2 */
-	uint8_t target_speed = 0.3; //0.3m/s
+
 	float dt = 0.1;
+	float error = 0;
+	float throttleCur[2] = { 0,0};
 	uint32_t SUM_CCR1 = 0, AVG_CCR1 = 0;
 	uint32_t PreCCR1 = 0; //Compare change of CCR1 value
 
 	PreCCR1 = TIM5->CCR1;
 	int count = 0; //period
-
-	uint32_t throttleCur[2] = { 0, };
 
 	HAL_DAC_Start(&hdac, DAC_CHANNEL_1); // right
 	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0);
@@ -200,12 +201,17 @@ int main(void) {
 				overtimeR = (float) AVG_CCR1 * 0.00125; //get a overtime
 				nowspeedR = diameter / overtimeR; //get a speed
 
-				sprintf((char*) tx_buffer, "Capture Speed[RIGHT]: %0.2fm/s\r\n",
+				sprintf((char*) tx_buffer, "%0.2f\r\n",
 						nowspeedR);
 				tx_com(tx_buffer, strlen((char const*) tx_buffer));
 			}
 		}
 	}
+//	for (int s = 0; s < 16 + 1; s++) {
+//		throttleCur[RIGHT] = 100 * s;
+//		set_throttle_value(&hdac, 0, throttleCur[RIGHT]);
+//		HAL_Delay(100);
+//	}
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -213,10 +219,17 @@ int main(void) {
 
 	while (1) {
 		AVG_Capture();
-		throttleCur[RIGHT] = PID(nowspeedR, target_speed, dt);
-		if(throttleCur[RIGHT]<4000){
-		set_throttle_value(&hdac, 0, throttleCur[RIGHT]);
+
+		throttleCur[RIGHT] =+ (PID(nowspeedR, target_speed, dt)*1000);
+		sprintf((char*) tx_buffer, "%0.2f,%0.2f\r\n",
+								throttleCur[RIGHT],nowspeedR);
+						tx_com(tx_buffer, strlen((char const*) tx_buffer));
+						HAL_Delay(10);
+		if (throttleCur[RIGHT] < 4000) {
+			set_throttle_value(&hdac, 0, throttleCur[RIGHT]);
+
 		}
+
 		/* USER CODE END WHILE */
 	}
 	/* USER CODE BEGIN 3 */
