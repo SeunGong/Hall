@@ -214,7 +214,9 @@ int main(void) {
 	while (1) {
 		AVG_Capture();
 		throttleCur[RIGHT] = PID(nowspeedR, target_speed, dt);
+		if(throttleCur[RIGHT]<4000){
 		set_throttle_value(&hdac, 0, throttleCur[RIGHT]);
+		}
 		/* USER CODE END WHILE */
 	}
 	/* USER CODE BEGIN 3 */
