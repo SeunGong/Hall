@@ -105,7 +105,7 @@ static void MX_TIM5_Init(void);
 static void tx_com(uint8_t *tx_buffer, uint16_t len);
 void RangingLoop(void);
 void AVG_Capture();
-float PID(float current, float target, float dt);
+float PI(float current, float target, float dt);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -117,7 +117,7 @@ uint32_t maxSpeedBackward = 2200;
 
 int mode = 1;
 int joystickState = 1;
-
+float dt=0.1 ;
 /* USER CODE END 0 */
 
 /**
@@ -130,8 +130,8 @@ int main(void) {
 	float overtimeR = 0;
 	float diameter = 3.14 * 14 / 60; //PI*diameter/count of cycle
 //	float nowspeedL = 0;
-	float nowspeedR=0;
-	float target_speed=0.5f;
+	float nowspeedR = 0;
+	float target_speed = 0.5f;
 	//0.7m/s
 //	uint8_t newI2C;
 	//	uint8_t ToFSensor = 1; // 0=Left, 1=Center(default), 2=Right
@@ -171,9 +171,8 @@ int main(void) {
 	MX_TIM5_Init();
 	/* USER CODE BEGIN 2 */
 
-	float dt = 0.1;
-	float error = 0;
-	float throttleCur[2] = { 0,0};
+
+	float throttleCur[2] = { 0, 0 };
 	uint32_t SUM_CCR1 = 0, AVG_CCR1 = 0;
 	uint32_t PreCCR1 = 0; //Compare change of CCR1 value
 
@@ -201,8 +200,7 @@ int main(void) {
 				overtimeR = (float) AVG_CCR1 * 0.00125; //get a overtime
 				nowspeedR = diameter / overtimeR; //get a speed
 
-				sprintf((char*) tx_buffer, "%0.2f\r\n",
-						nowspeedR);
+				sprintf((char*) tx_buffer, "%0.2f\r\n", nowspeedR);
 				tx_com(tx_buffer, strlen((char const*) tx_buffer));
 			}
 		}
@@ -218,15 +216,16 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 
 	while (1) {
-		AVG_Capture();
+		AVG_Capture(); //averege period capture
 
-		throttleCur[RIGHT] =+ (PID(nowspeedR, target_speed, dt)*1000);
-		sprintf((char*) tx_buffer, "%0.2f,%0.2f\r\n",
-								throttleCur[RIGHT],nowspeedR);
-						tx_com(tx_buffer, strlen((char const*) tx_buffer));
-						HAL_Delay(10);
+		throttleCur[RIGHT] = + (PI(nowspeedR, target_speed, dt));
+
+		sprintf((char*) tx_buffer, "%0.2f,%0.2f\r\n", throttleCur[RIGHT],
+				nowspeedR);
+		tx_com(tx_buffer, strlen((char const*) tx_buffer));
+
 		if (throttleCur[RIGHT] < 4000) {
-			set_throttle_value(&hdac, 0, throttleCur[RIGHT]);
+			set_throttle_value(&hdac, 0, throttleCur[RIGHT]); //set motor speed
 
 		}
 

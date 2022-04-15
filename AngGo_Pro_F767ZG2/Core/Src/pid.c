@@ -6,17 +6,18 @@
  */
 #include "main.h"
 
-#define Kp 2
+#define Kp 1
 #define Ki 0.2
-#define Kd 0.0
-extern float error=0.0f;
-float P, D;
+float exerror=0,error = 0,P;
 
-extern float PID(float current, float target, float dt) {
+extern float PI(float current, float target, float dt) {
 	static float I = 0;
 	error = target - current;
-	P = error * Kp;
+	P = (error-exerror) * Kp;
 	I += Ki * error * dt;
-
+	exerror = error;
 	return P + I;
 }
+
+
+
