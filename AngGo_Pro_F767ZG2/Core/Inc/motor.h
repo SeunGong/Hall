@@ -56,6 +56,20 @@ extern uint32_t minSpeedBackward;
 extern uint32_t maxSpeed;
 extern uint32_t maxSpeedBackward;
 
+#define Kp 1
+#define Ki 0.2
+float exerror=0,error = 0,P;
+float throttleCur[2];
+
+float PI(float current, float target, float dt) {
+	static float I = 0;
+	error = target - current;
+	P = (error-exerror) * Kp;
+	I += Ki * error * dt;
+	exerror = error;
+	return P + I;
+}
+
 void set_throttle_value(DAC_HandleTypeDef *hdac, uint32_t leftThrottleValTemp,
 		uint32_t rightThrottleValTemp) {
 	uint32_t leftThrottleVal = leftThrottleValTemp;

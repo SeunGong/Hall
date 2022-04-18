@@ -105,7 +105,6 @@ static void MX_TIM5_Init(void);
 static void tx_com(uint8_t *tx_buffer, uint16_t len);
 void RangingLoop(void);
 void AVG_Capture();
-float PI(float current, float target, float dt);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -114,10 +113,41 @@ uint32_t minSpeed = 1000;
 uint32_t minSpeedBackward = 1000;
 uint32_t maxSpeed = 2200;
 uint32_t maxSpeedBackward = 2200;
+uint32_t SUM_CCR1 = 0, AVG_CCR1 = 0;
+uint32_t PreCCR1 = 0; //Compare change of CCR1 value
+//	float overtimeL = 0;
+float overtimeR = 0;
+float diameter = 3.14 * 14 / 60; //PI*diameter/count of cycle
+//	float nowspeedL = 0;
+float nowspeedR = 0;
+float target_speed = 0.5;
+
+int count = 0; //period
 
 int mode = 1;
 int joystickState = 1;
-float dt=0.1 ;
+float dt = 0.1;
+
+void AVG_Capture() { //get a current speed
+	for (int num = 0; num < 10; num++) {
+		if (PreCCR1 != TIM5->CCR1) {
+			PreCCR1 = TIM5->CCR1;
+			count++;
+			SUM_CCR1 += PreCCR1;
+		}
+		if (count == 10) {
+			AVG_CCR1 = SUM_CCR1 / count;
+			SUM_CCR1 = 0;
+			count = 0;
+
+			overtimeR = (float) AVG_CCR1 * 0.00125; //get a overtime
+			nowspeedR = diameter / overtimeR; //get a speed
+
+			sprintf((char*) tx_buffer, "%0.2f\r\n", nowspeedR);
+			tx_com(tx_buffer, strlen((char const*) tx_buffer));
+		}
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -126,12 +156,7 @@ float dt=0.1 ;
  */
 int main(void) {
 	/* USER CODE BEGIN 1 */
-//	float overtimeL = 0;
-	float overtimeR = 0;
-	float diameter = 3.14 * 14 / 60; //PI*diameter/count of cycle
-//	float nowspeedL = 0;
-	float nowspeedR = 0;
-	float target_speed = 0.5f;
+
 	//0.7m/s
 //	uint8_t newI2C;
 	//	uint8_t ToFSensor = 1; // 0=Left, 1=Center(default), 2=Right
@@ -170,14 +195,7 @@ int main(void) {
 	MX_TIM1_Init();
 	MX_TIM5_Init();
 	/* USER CODE BEGIN 2 */
-
-
-	float throttleCur[2] = { 0, 0 };
-	uint32_t SUM_CCR1 = 0, AVG_CCR1 = 0;
-	uint32_t PreCCR1 = 0; //Compare change of CCR1 value
-
 	PreCCR1 = TIM5->CCR1;
-	int count = 0; //period
 
 	HAL_DAC_Start(&hdac, DAC_CHANNEL_1); // right
 	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0);
@@ -185,31 +203,11 @@ int main(void) {
 //	HAL_TIMEx_HallSensor_Start(&htim4);
 	HAL_TIMEx_HallSensor_Start(&htim5);
 
-	void AVG_Capture() { //get a current speed
-		for (int num = 0; num < 10; num++) {
-			if (PreCCR1 != TIM5->CCR1) {
-				PreCCR1 = TIM5->CCR1;
-				count++;
-				SUM_CCR1 += PreCCR1;
-			}
-			if (count == 10) {
-				AVG_CCR1 = SUM_CCR1 / count;
-				SUM_CCR1 = 0;
-				count = 0;
-
-				overtimeR = (float) AVG_CCR1 * 0.00125; //get a overtime
-				nowspeedR = diameter / overtimeR; //get a speed
-
-				sprintf((char*) tx_buffer, "%0.2f\r\n", nowspeedR);
-				tx_com(tx_buffer, strlen((char const*) tx_buffer));
-			}
-		}
+	for (int s = 0; s < 16 + 1; s++) { //Init motor speed for PI
+		throttleCur[RIGHT] = 100 * s;
+		set_throttle_value(&hdac, 0, throttleCur[RIGHT]);
+		HAL_Delay(100);
 	}
-//	for (int s = 0; s < 16 + 1; s++) {
-//		throttleCur[RIGHT] = 100 * s;
-//		set_throttle_value(&hdac, 0, throttleCur[RIGHT]);
-//		HAL_Delay(100);
-//	}
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -217,14 +215,13 @@ int main(void) {
 
 	while (1) {
 		AVG_Capture(); //averege period capture
-
-		throttleCur[RIGHT] = + (PI(nowspeedR, target_speed, dt));
+		throttleCur[RIGHT] = +(PI(nowspeedR, target_speed, dt));
 
 		sprintf((char*) tx_buffer, "%0.2f,%0.2f\r\n", throttleCur[RIGHT],
 				nowspeedR);
 		tx_com(tx_buffer, strlen((char const*) tx_buffer));
 
-		if (throttleCur[RIGHT] < 4000) {
+		if (throttleCur[RIGHT] < 4000) { //limited motor speed
 			set_throttle_value(&hdac, 0, throttleCur[RIGHT]); //set motor speed
 
 		}
