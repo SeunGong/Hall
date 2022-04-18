@@ -59,7 +59,7 @@ extern uint32_t maxSpeedBackward;
 #define Kp 1
 #define Ki 0.2
 float exerror=0,error = 0,P;
-float throttleCur[2];
+float throttleCur[2]={0,0};
 
 float PI(float current, float target, float dt) {
 	static float I = 0;

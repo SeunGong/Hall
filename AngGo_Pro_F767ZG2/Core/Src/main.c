@@ -203,11 +203,6 @@ int main(void) {
 //	HAL_TIMEx_HallSensor_Start(&htim4);
 	HAL_TIMEx_HallSensor_Start(&htim5);
 
-	for (int s = 0; s < 16 + 1; s++) { //Init motor speed for PI
-		throttleCur[RIGHT] = 100 * s;
-		set_throttle_value(&hdac, 0, throttleCur[RIGHT]);
-		HAL_Delay(100);
-	}
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -215,7 +210,7 @@ int main(void) {
 
 	while (1) {
 		AVG_Capture(); //averege period capture
-		throttleCur[RIGHT] = +(PI(nowspeedR, target_speed, dt));
+		throttleCur[RIGHT] += PI(nowspeedR, target_speed, dt);
 
 		sprintf((char*) tx_buffer, "%0.2f,%0.2f\r\n", throttleCur[RIGHT],
 				nowspeedR);
