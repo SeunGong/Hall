@@ -29,4 +29,9 @@ uint32_t map(uint32_t in, uint32_t inMin, uint32_t inMax, uint32_t outMin, uint3
   return (uint32_t)(outMin + scale * (outMax - outMin));
 }
 
+uint32_t signed_map(float in, int32_t inMin, int32_t inMax, int32_t outMin, int32_t outMax) {
+	float scale=(in-inMin)*1.0f/(inMax-inMin);
+
+	return (uint32_t)(outMin+(outMax-outMin)*scale);
+}
 #endif /* INC_ALTERATION_H_ */

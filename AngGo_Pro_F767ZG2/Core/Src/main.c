@@ -105,6 +105,7 @@ static void MX_TIM5_Init(void);
 static void tx_com(uint8_t *tx_buffer, uint16_t len);
 void RangingLoop(void);
 void AVG_Capture();
+extern void MotorControl(float current, float target, float dt);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -128,26 +129,6 @@ int mode = 1;
 int joystickState = 1;
 float dt = 0.1;
 
-void AVG_Capture() { //get a current speed
-	for (int num = 0; num < 10; num++) {
-		if (PreCCR1 != TIM5->CCR1) {
-			PreCCR1 = TIM5->CCR1;
-			count++;
-			SUM_CCR1 += PreCCR1;
-		}
-		if (count == 10) {
-			AVG_CCR1 = SUM_CCR1 / count;
-			SUM_CCR1 = 0;
-			count = 0;
-
-			overtimeR = (float) AVG_CCR1 * 0.00125; //get a overtime
-			nowspeedR = diameter / overtimeR; //get a speed
-
-			sprintf((char*) tx_buffer, "%0.2f\r\n", nowspeedR);
-			tx_com(tx_buffer, strlen((char const*) tx_buffer));
-		}
-	}
-}
 /* USER CODE END 0 */
 
 /**
@@ -210,16 +191,14 @@ int main(void) {
 
 	while (1) {
 		AVG_Capture(); //averege period capture
-		throttleCur[RIGHT] += PI(nowspeedR, target_speed, dt);
+		MotorControl(nowspeedR, target_speed, dt);
 
+		if (throttleCur[RIGHT] < maxSpeed) { //limited motor speed
+			set_throttle_value(&hdac, 0, throttleCur[RIGHT]); //set motor speed
+		}
 		sprintf((char*) tx_buffer, "%0.2f,%0.2f\r\n", throttleCur[RIGHT],
 				nowspeedR);
 		tx_com(tx_buffer, strlen((char const*) tx_buffer));
-
-		if (throttleCur[RIGHT] < 4000) { //limited motor speed
-			set_throttle_value(&hdac, 0, throttleCur[RIGHT]); //set motor speed
-
-		}
 
 		/* USER CODE END WHILE */
 	}
@@ -967,7 +946,26 @@ static void MX_GPIO_Init(void) {
 static void tx_com(uint8_t *tx_buffer, uint16_t len) {
 	HAL_UART_Transmit(&huart3, tx_buffer, len, 1000);
 }
+void AVG_Capture() { //get a current speed
+	for (int num = 0; num < 10; num++) {
+		if (PreCCR1 != TIM5->CCR1) {
+			PreCCR1 = TIM5->CCR1;
+			count++;
+			SUM_CCR1 += PreCCR1;
+		}
+		if (count == 10) {
+			AVG_CCR1 = SUM_CCR1 / count;
+			SUM_CCR1 = 0;
+			count = 0;
 
+			overtimeR = (float) AVG_CCR1 * 0.00125; //get a overtime
+			nowspeedR = diameter / overtimeR; //get a speed
+
+			sprintf((char*) tx_buffer, "%0.2f\r\n", nowspeedR);
+			tx_com(tx_buffer, strlen((char const*) tx_buffer));
+		}
+	}
+}
 /* Autonomous ranging loop*/
 void RangingLoop(void) {
 

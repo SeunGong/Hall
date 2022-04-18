@@ -49,6 +49,9 @@ float inMinForward[2] = { 1300, 1300 };
 float inMaxForward[2] = { 1000, 1000 };
 float inMinBackward[2] = { 1700, 1700 };
 float inMaxBackward[2] = { 2400, 2400 };
+#define MAX_SPEED 2000
+#define AVG_SPEED 1800
+#define MIN_SPEED 1400
 //#endif
 
 extern uint32_t minSpeed;
@@ -58,18 +61,33 @@ extern uint32_t maxSpeedBackward;
 
 #define Kp 1
 #define Ki 0.2
-float exerror=0,error = 0,P;
-float throttleCur[2]={0,0};
+float exerror = 0, error = 0, P;
+float throttleCur[2] = { 0, 0 };
+float CurrentSpeed[2] = { 0, 0 };
 
 float PI(float current, float target, float dt) {
 	static float I = 0;
 	error = target - current;
-	P = (error-exerror) * Kp;
+	P = (error - exerror) * Kp;
 	I += Ki * error * dt;
 	exerror = error;
 	return P + I;
 }
+/*void SpeedLimit(float speed) {
+	float Out;
+	Out = speed < minSpeed ? minSpeed : speed;
+	Out = speed > maxSpeed ? maxSpeed : speed;
+}*/
+float Speed2DAC(float speed) {
+	uint32_t throttle = 0;
+	throttle = signed_map(abs(speed), 0, 100, MIN_SPEED, MAX_SPEED);
+	return throttle;
+}
+void MotorControl(float current, float target, float dt) {
+	CurrentSpeed[RIGHT] = PI(current, target, dt);
+	throttleCur[RIGHT] = Speed2DAC(CurrentSpeed[RIGHT]);
 
+}
 void set_throttle_value(DAC_HandleTypeDef *hdac, uint32_t leftThrottleValTemp,
 		uint32_t rightThrottleValTemp) {
 	uint32_t leftThrottleVal = leftThrottleValTemp;
